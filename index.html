@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="it"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0e1a2b"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Scout Volley"><meta name="format-detection" content="telephone=no"><title>Scout Volley · Rotazione, Ricezione, Difesa</title>
+<style>
+:root{--bg:#0e1a2b;--card:#16273d;--ink:#eef3f8;--mut:#8fa3b8;--acc:#ffb703}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+html,body{height:100%;margin:0;-webkit-text-size-adjust:100%;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;background:var(--bg);color:var(--ink);font-family:"Avenir Next Condensed","Arial Narrow",Arial,sans-serif}
+button,input,select{font:inherit;color:inherit}input,select{font-size:16px;-webkit-user-select:text;user-select:text}button,input{-webkit-appearance:none;appearance:none}button{cursor:pointer;border:0}
+.view{display:none;height:100%;flex-direction:column;max-width:640px;margin:auto;padding:max(env(safe-area-inset-top),8px) 10px max(env(safe-area-inset-bottom),8px);gap:8px}
+.view.on{display:flex}@supports(height:100dvh){.view{height:100dvh}}.scroll{overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+h1{margin:4px 0;font-size:22px;letter-spacing:.5px}h2{margin:0 0 8px;font-size:16px;color:var(--acc);text-transform:uppercase;letter-spacing:1px}
+.card{background:var(--card);border-radius:14px;padding:12px}.mut{color:var(--mut);font-size:13px;margin:0 0 8px}
+input,select{background:#0b1626;border:1px solid #2a4261;border-radius:10px;padding:10px;min-width:0}
+.add{display:flex;gap:6px}.add input{flex:1}.add input:first-child{flex:0 0 60px}
+.btn{background:#24405f;border-radius:10px;padding:10px 14px;font-weight:700}.acc{background:var(--acc);color:#241a00}
+.big{padding:16px;font-size:19px;border-radius:14px;background:var(--acc);color:#241a00;font-weight:800}
+.row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #223853}
+.tag{display:inline-block;min-width:22px;text-align:center;border-radius:6px;padding:1px 6px;margin-right:8px;font-weight:800;color:#111}
+/* barra e tab */
+.bar{display:flex;gap:6px;align-items:center}.bar b{font-size:18px}.rot{flex:1;text-align:center;font-weight:800;color:var(--acc);font-size:18px}
+.bar .btn{padding:9px 12px}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.tabs button{padding:12px;border-radius:12px;background:#1b3250;font-weight:800;letter-spacing:1px;font-size:16px}
+.tabs button.on{background:var(--acc);color:#241a00}
+#hint{display:flex;gap:8px;align-items:center;justify-content:space-between;min-height:42px;background:var(--card);border-radius:12px;padding:6px 10px;font-size:15px}
+#hint.warn{outline:2px solid var(--acc)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}.chip{padding:8px 12px;border-radius:20px;background:#1b3250;font-size:14px;font-weight:700}.chip.on{background:#fff;color:#111}
+/* campo */
+#court{flex:1;display:flex;flex-direction:column;min-height:0;gap:0;border:3px solid #f4efe6;border-radius:6px;overflow:hidden}
+.half{flex:1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:minmax(0,1fr) minmax(0,1fr);min-height:0}
+.opp{background:#2c5f8f}.our{background:#d58f4c}
+.net{height:10px;background:repeating-linear-gradient(90deg,#fff 0 6px,#222 6px 10px);font-size:0}
+.cell{cursor:pointer;position:relative;border:1px solid #f4efe688;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:#fff;padding:2px;overflow:hidden}
+.cell i{position:absolute;top:4px;left:6px;font-style:normal;font-size:13px;opacity:.7}
+.cell b{font-size:clamp(26px,8vw,56px);line-height:1;text-shadow:0 1px 3px #0006}
+.cell span{font-size:12px;font-weight:700;max-width:96%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:uppercase}
+.our .cell{border-left:6px solid var(--rc);background:#0000002a}
+.our .cell:active,.opp .cell:active{background:#fff5}
+.opp .cell.sel{background:#ffb703cc;color:#241a00}.opp .cell.sel b{text-shadow:none}
+.opp .cell b{opacity:.9}.cnt{position:absolute;top:4px;right:6px;background:#0008;border-radius:10px;padding:1px 7px;font-size:13px}
+.cell.pick{outline:3px solid var(--acc);outline-offset:-3px}
+.foot{display:flex;gap:6px;align-items:center}.foot.w{flex-wrap:wrap}.foot.w span{flex:1 1 100%}.foot.w .btn{flex:1;padding:10px 4px;font-size:14px}.foot span{flex:1;font-size:13px;color:var(--mut);line-height:1.2}
+.score{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.sc{display:flex;align-items:center;justify-content:space-between;gap:4px;background:var(--card);border-radius:12px;padding:4px 5px;border:2px solid #24405f}
+.sc.srv{border-color:var(--acc)}.sc small{display:block;font-size:11px;color:var(--mut);letter-spacing:1px;text-align:center}
+.sc b{display:block;font-size:34px;line-height:1;text-align:center;font-family:ui-monospace,Menlo,monospace;min-width:48px}
+.sc button{width:42px;height:42px;border-radius:10px;font-size:22px;font-weight:800;background:#24405f}.sc .plus{background:var(--acc);color:#241a00}
+/* sheet */
+#sheet{position:fixed;top:0;right:0;bottom:0;left:0;background:#000a;display:none;align-items:flex-end;justify-content:center;z-index:9}
+#sheet.on{display:flex}#panel{width:100%;max-width:640px;background:var(--card);border-radius:18px 18px 0 0;padding:14px 12px max(env(safe-area-inset-bottom),14px);max-height:85vh;overflow:auto}
+.grades{display:grid;gap:7px;margin:10px 0}
+.g{display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:12px;font-weight:800;font-size:18px;text-align:left}
+.g em{font-style:normal;font-size:26px;width:30px;text-align:center}
+.pl{display:block;width:100%;text-align:left;padding:13px;margin:6px 0;border-radius:12px;background:#1b3250;font-size:17px;font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:6px 3px;text-align:center;border-bottom:1px solid #223853}th:first-child,td:first-child{text-align:left}th{color:var(--mut);font-weight:600}
+.mini{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;margin-top:6px}.mini div{background:#2c5f8f;border-radius:6px;padding:10px 4px;text-align:center;font-size:12px}.mini b{display:block;font-size:22px}
+#nojs{position:fixed;top:0;right:0;bottom:0;left:0;z-index:99;background:#0e1a2b;padding:24px;overflow:auto;font-size:17px;line-height:1.45}
+#nojs h1{color:#ffb703}#nojs li{margin:8px 0}#nojs small{display:block;margin-top:14px;color:#fb923c}
+@media(min-width:700px){.view{max-width:860px}#panel{max-width:640px}}
+@media(min-width:900px) and (orientation:landscape){
+ #vMatch{max-width:1240px}
+ #vMatch.on{display:grid;grid-template-columns:minmax(0,1fr) 340px;grid-template-rows:repeat(6,min-content) minmax(0,1fr);column-gap:14px;row-gap:8px}
+ #vMatch.on #court{grid-column:1;grid-row:1 / -1;min-height:0}
+ #vMatch.on>*:not(#court){grid-column:2}
+ .cell b{font-size:clamp(34px,6vw,72px)}
+}
+</style></head><body>
+<div id="nojs"><h1>Scout Volley</h1>
+<p>Se vedi solo questa pagina, il file è stato aperto in <b>anteprima</b> (da File, Mail, WhatsApp…) e iPadOS <b>non esegue JavaScript</b>, oppure lo script non è partito.</p>
+<ol><li><b>Consigliato:</b> carica il file su un sito (GitHub Pages, Netlify Drop…), aprilo in <b>Safari</b> e usa Condividi → <b>Aggiungi a Home</b>: parte a schermo intero e i dati restano salvati.</li>
+<li><b>Offline:</b> apri il file con un'app che esegue l'HTML, come <b>Documenti di Readdle</b> (importa il file e toccalo) o Koder.</li></ol>
+<small></small></div>
+<script>window.onerror=function(m,u,l){var n=document.getElementById('nojs');if(n){n.style.display='block';n.getElementsByTagName('small')[0].textContent='Errore: '+m+' (riga '+l+')'}}</script>
+
+<!-- SETUP -->
+<div class="view scroll" id="vSetup">
+  <h1>Scout · Rosa e formazione</h1>
+  <div class="card"><h2>Rosa</h2>
+    <div class="add"><input id="n" inputmode="numeric" placeholder="N°"><input id="nm" placeholder="Cognome">
+      <select id="rl"><option value="P">P</option><option value="S">S</option><option value="C">C</option><option value="O">O</option><option value="L">L</option></select>
+      <button class="btn acc" onclick="addP()">+</button></div>
+    <p class="mut" style="margin-top:6px">P palleggiatrice · S schiacciatrice · C centrale · O opposto · L libero</p>
+    <div id="rost"></div></div>
+  <div class="card"><h2>Formazione in campo</h2><p class="mut">Tocca una posizione e scegli la giocatrice (1 = battuta). Zona 4-3-2 a rete.</p>
+    <div class="half our" id="lcourt" style="height:300px;border-radius:8px;overflow:hidden"></div></div>
+  <div class="card"><h2>Libero</h2><p class="mut">Entra da solo al posto del centrale in seconda linea (zone 5, 6, 1), tranne quando il centrale è in battuta.</p><button class="pl" id="libB" onclick="openLibero()"></button></div>
+  <div class="card"><h2>Inizio set</h2><div class="chips"><button class="chip" id="sv1" onclick="setServ(true)">🏐 Battiamo noi</button><button class="chip" id="sv0" onclick="setServ(false)">🏐 Riceviamo noi</button></div></div>
+  <button class="big" onclick="goMatch()">Vai al match →</button>
+  <button class="btn" onclick="resetAll()" style="background:#4a2230">Azzera tutto (rosa + eventi)</button>
+</div>
+
+<!-- MATCH -->
+<div class="view" id="vMatch">
+  <div class="bar"><button class="btn" onclick="show('vSetup')">☰</button><b id="setL"></b><span class="rot" id="rotL"></span>
+    <button class="btn" onclick="rot(-1)">↺</button><button class="btn acc" onclick="rotUp()">Ruota ↻</button></div>
+  <div class="score">
+    <div class="sc" id="scU"><button onclick="pt('us',-1)">−</button><div><small id="lU"></small><b id="nU">0</b></div><button class="plus" onclick="pt('us',1)">+</button></div>
+    <div class="sc" id="scO"><button onclick="pt('opp',-1)">−</button><div><small id="lO"></small><b id="nO">0</b></div><button class="plus" onclick="pt('opp',1)">+</button></div>
+  </div>
+  <div class="tabs"><button id="tRec" onclick="setMode('rec')">RICEZIONE</button><button id="tDef" onclick="setMode('def')">DIFESA</button></div>
+  <div id="hint"></div>
+  <div id="court"><div class="half opp" id="opp"></div><div class="net"></div><div class="half our" id="our"></div></div>
+  <div class="foot w"><span id="last">—</span><button class="btn" onclick="undo()">Annulla</button><button class="btn" id="subB" onclick="toggleSub()">Cambio</button><button class="btn" onclick="showStats()">Stat</button><button class="btn" style="background:#4a2230" onclick="nextSet()">Nuovo set</button></div>
+</div>
+
+<!-- STATS -->
+<div class="view scroll" id="vStats">
+  <div class="bar"><button class="btn" onclick="show('vMatch')">← Match</button><span class="rot">STATISTICHE</span>
+    <select id="fset" onchange="renderStats()"></select></div>
+  <div class="card"><h2>Punteggio</h2><div id="sScore"></div></div>
+  <div class="card"><h2>Ricezione per giocatrice</h2><div id="sRecP"></div></div>
+  <div class="card"><h2>Ricezione per rotazione</h2><div id="sRecR"></div></div>
+  <div class="card"><h2>Difesa per giocatrice</h2><div id="sDefP"></div></div>
+  <div class="card"><h2>Difesa · da dove è arrivato l'attacco</h2><p class="mut">Campo avversario visto dalla tua metà · n° palle difese · % positive</p><div class="mini" id="sZone"></div></div>
+  <div class="card"><h2>Difesa per rotazione</h2><div id="sDefR"></div></div>
+  <div class="foot"><button class="btn acc" style="flex:1" onclick="csv()">Esporta CSV</button><button class="btn" style="flex:1" onclick="nextSet()">Nuovo set</button></div>
+</div>
+
+<div id="sheet" onclick="if(event.target===this)closeSheet()"><div id="panel"></div></div>
+
+<script>
+const $=id=>document.getElementById(id), KEY='scoutRDR1';
+const ROLE={P:['Palleggiatrice','#4a90d9'],S:['Schiacciatrice','#8a5bd1'],C:['Centrale','#e8893a'],O:['Opposto','#d9475f'],L:['Libero','#f2cc1b']};
+const GN=['#','+','!','-','=','muro','mani out'], GR=['#','+','!','-','='], GC=['#15803d','#4ade80','#fde047','#fb923c','#dc2626'], GT=['#fff','#06260f','#2e2600','#2e1300','#fff'];
+const GL={rec:['Perfetta','Positiva','Media','Scarsa','Errore / ace'],def:['Perfetta (alzata in sistema)','Buona','Media','Scarsa','Persa / palla a terra']};
+const TECH={rec:['Bagher','Palleggio'],def:['Bagher','Palleggio','Tuffo','Una mano']};
+const KINDS=['Attacco','Pallonetto','Free ball'];
+const OURORD=[4,3,2,5,6,1], OPPORD=[1,6,5,2,3,4];
+const fresh=()=>({roster:[],lineup:[0,0,0,0,0,0],set:1,rot:0,events:[],mode:'rec',serving:false,plog:[]});let S=fresh();
+try{Object.assign(S,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+let origin=null,kind='Attacco',tech='',sub=false,ctx=null,pickPos=null;
+const P=id=>S.roster.find(p=>p.id===id);
+const lab=p=>p?'#'+p.num+' '+p.name:'—';
+
+function show(id){document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id===id));
+  if(id==='vSetup'){renderRoster();renderLineup()} if(id==='vMatch')render();}
+function rotKey(){const i=S.lineup.findIndex(id=>P(id)&&P(id).role==='P');return i>=0?'P'+(i+1):'R'+(S.rot%6+1)}
+
+/* ---------- rosa e formazione ---------- */
+function addP(){const num=$('n').value.trim(),name=$('nm').value.trim();if(!num&&!name)return;
+  S.roster.push({id:Date.now()+Math.floor(Math.random()*999),num,name,role:$('rl').value});$('n').value=$('nm').value='';save();renderRoster()}
+function delP(id){S.roster=S.roster.filter(p=>p.id!==id);S.lineup=S.lineup.map(x=>x===id?0:x);save();renderRoster();renderLineup()}
+function renderRoster(){$('rost').innerHTML=S.roster.map(p=>`<div class="row"><span><span class="tag" style="background:${ROLE[p.role][1]}">${p.role}</span>#${p.num} ${p.name}</span><button class="btn" onclick="delP(${p.id})">✕</button></div>`).join('')||'<p class="mut">Aggiungi le giocatrici.</p>'}
+const libId=()=>{if(S.libero===-1)return 0;const l=P(S.libero);if(l&&l.role==='L')return l.id;const f=S.roster.find(p=>p.role==='L');return f?f.id:0};
+function court(){const L=libId();return S.lineup.map((id,i)=>{const pos=i+1,p=P(id);return L&&p&&p.role==='C'&&(pos===5||pos===6||(pos===1&&!S.serving))?L:id})}
+function defCourt(){const c=court(),out=[0,0,0,0,0,0],left={F:[],B:[]};
+  const SL={F:{A:2,C:3,S:4},B:{A:1,C:5,S:6}};
+  c.forEach((id,i)=>{const pos=i+1,r=(pos>=2&&pos<=4)?'F':'B',p=P(id),ro=p?p.role:'';
+    const g=(ro==='P'||ro==='O')?'A':(ro==='C'||ro==='L')?'C':ro==='S'?'S':'';
+    const sl=g?SL[r][g]:0;
+    if(sl&&!out[sl-1])out[sl-1]=id;else left[r].push(id)});
+  [['F',[2,3,4]],['B',[5,6,1]]].forEach(function(x){x[1].forEach(function(sl){if(!out[sl-1]&&left[x[0]].length)out[sl-1]=left[x[0]].shift()})});
+  return out}
+function view(){return S.mode==='def'&&!sub?defCourt():court()}
+function markLib(){const l=libId();$('libB').textContent=l?lab(P(l))+'  ·  cambia':'Nessun libero (aggiungi una giocatrice con ruolo L)'}
+function openLibero(){$('panel').innerHTML='<h2>Scegli il libero</h2>'+S.roster.filter(p=>p.role==='L').map(p=>`<button class="pl" onclick="setLib(${p.id})">${lab(p)}</button>`).join('')+'<button class="pl" onclick="setLib(-1)" style="background:#4a2230">Nessun libero</button><button class="pl" onclick="closeSheet()">Annulla</button>';$('sheet').classList.add('on')}
+function setLib(id){S.libero=id;save();closeSheet();markLib();if($('vMatch').classList.contains('on'))render()}
+function cellOur(pos,fn,extra='',arr){const p=P((arr||S.lineup)[pos-1]);
+  return `<div role="button" class="cell ${extra}" style="--rc:${p?ROLE[p.role][1]:'#fff3'}" onclick="${fn}(${pos})"><i>${pos}</i>${p?`<b>${p.num}</b><span>${p.name}</span>`:'<b>+</b>'}</div>`}
+function renderLineup(){$('lcourt').innerHTML=OURORD.map(p=>cellOur(p,'openPicker')).join('');markServ();markLib()}
+function markServ(){$('sv1').classList.toggle('on',S.serving);$('sv0').classList.toggle('on',!S.serving)}
+function setServ(v){S.serving=v;S.mode=v?'def':'rec';save();markServ()}
+function openPicker(pos){pickPos=pos;const inC=S.lineup;
+  const list=S.roster.filter(p=>!inC.includes(p.id)&&p.role!=='L');
+  $('panel').innerHTML=`<h2>Posizione ${pos}${sub?' · cambio':''}</h2>`+(list.map(p=>`<button class="pl" onclick="pick(${p.id})"><span class="tag" style="background:${ROLE[p.role][1]}">${p.role}</span>#${p.num} ${p.name}</button>`).join('')||'<p class="mut">Nessuna giocatrice in panchina.</p>')+
+   `<button class="pl" onclick="pick(0)" style="background:#4a2230">Svuota posizione</button><button class="pl" onclick="closeSheet()">Annulla</button>`;
+  $('sheet').classList.add('on')}
+function pick(id){S.lineup[pickPos-1]=id;sub=false;closeSheet();save();
+  if($('vMatch').classList.contains('on'))render();else renderLineup()}
+let askFn=null;
+function ask(msg,fn,yes){askFn=fn;$('panel').innerHTML=`<h2>${msg}</h2><div class="grades"><button class="g" style="background:#ffb703;color:#241a00" onclick="closeSheet();askFn&&askFn()"><em>✓</em>${yes||'Conferma'}</button></div><button class="pl" onclick="closeSheet()">Annulla</button>`;$('sheet').classList.add('on')}
+function goMatch(){if(S.lineup.filter(Boolean).length<6){ask('Formazione incompleta. Continuare lo stesso?',enterMatch,'Continua');return}enterMatch()}
+function enterMatch(){
+  if(!S.plog.some(p=>p.set===S.set)&&!S.events.some(e=>e.set===S.set))S.mode=S.serving?'def':'rec';save();show('vMatch')}
+function resetAll(){ask('Cancellare rosa, formazione e tutti gli eventi?',()=>{S=fresh();save();show('vSetup')},'Cancella tutto')}
+
+/* ---------- match ---------- */
+function rotL(d){const n=[0,0,0,0,0,0];
+  S.lineup.forEach((id,i)=>{const p=i+1,q=d>0?(p===1?6:p-1):(p===6?1:p+1);n[q-1]=id});S.lineup=n;S.rot+=d}
+function rot(d){rotL(d);save();render()}
+function rotUp(){rotL(1);S.serving=true;S.mode='def';origin=null;save();render()}
+function score(set){const r={us:0,opp:0};S.plog.forEach(p=>{if(p.set===set)r[p.team]++});return r}
+function pt(team,d){
+  if(d>0){const e={set:S.set,team,rot:false,prev:S.serving};
+    if(team==='us'){if(!S.serving){rotL(1);e.rot=true}S.serving=true}else S.serving=false;
+    S.plog.push(e)}
+  else{let i=-1;for(let k=S.plog.length-1;k>=0;k--)if(S.plog[k].set===S.set&&S.plog[k].team===team){i=k;break}
+    if(i<0)return;const e=S.plog[i];
+    if(e.rot)rotL(-1);
+    if(i===S.plog.length-1)S.serving=e.prev;
+    S.plog.splice(i,1)}
+  S.mode=S.serving?'def':'rec';origin=null;tech='';save();render()}
+function setMode(m){S.mode=m;origin=null;tech='';save();render()}
+function toggleSub(){sub=!sub;render()}
+function cnt(z){return S.events.filter(e=>e.type==='def'&&e.zone===z&&e.set===S.set).length}
+function render(){
+  $('setL').textContent='SET '+S.set;$('rotL').textContent='ROT '+rotKey();
+  const sc=score(S.set);$('nU').textContent=sc.us;$('nO').textContent=sc.opp;
+  $('lU').textContent='NOI'+(S.serving?' 🏐':'');$('lO').textContent='AVV'+(S.serving?'':' 🏐');
+  $('scU').classList.toggle('srv',S.serving);$('scO').classList.toggle('srv',!S.serving);
+  $('tRec').classList.toggle('on',S.mode==='rec');$('tDef').classList.toggle('on',S.mode==='def');
+  $('subB').style.background=sub?'#ffb703':'';$('subB').style.color=sub?'#241a00':'';
+  $('our').innerHTML=OURORD.map(p=>cellOur(p,'tapOur',sub?'pick':'',view())).join('');
+  const def=S.mode==='def';
+  $('opp').innerHTML=OPPORD.map(z=>{const c=cnt(z);return `<div role="button" class="cell ${origin===z?'sel':''}" style="${def?'':'opacity:.45'}" onclick="tapOpp(${z})"><i>zona</i><b>${z}</b>${c?`<span class="cnt">${c}</span>`:''}</div>`}).join('');
+  const h=$('hint');h.classList.remove('warn');
+  if(sub)h.innerHTML='<span>Cambio: tocca la giocatrice da sostituire</span>';
+  else if(!def)h.innerHTML='<span><b>Ricezione</b> · tocca chi ha ricevuto</span>';
+  else{const ks=KINDS.map(k=>`<button class="chip ${k===kind?'on':''}" onclick="kind='${k}';render()">${k}</button>`).join('');
+    h.innerHTML=origin?`<span><b>2 ·</b> Tocca chi ha difeso (zona ${origin})</span><button class="btn" style="background:#4a2230" onclick="ground()">Palla a terra</button>`:`<span><b>1 ·</b> Tocca nel campo avversario da dove è partita la palla</span>`;
+    h.insertAdjacentHTML('afterend','');}
+  let kb=$('kb');if(!kb){kb=document.createElement('div');kb.id='kb';kb.className='chips';$('hint').after(kb)}
+  kb.style.display=def&&!sub?'flex':'none';kb.innerHTML=KINDS.map(k=>`<button class="chip ${k===kind?'on':''}" onclick="kind='${k}';render()">${k}</button>`).join('');
+  const l=S.events[S.events.length-1];$('last').textContent=l?'Ultimo: '+desc(l):'—';
+}
+function desc(e){const p=P(e.pid);return (e.type==='rec'?'Ric ':'Dif ')+(p?lab(p):'palla a terra')+' '+GN[e.g]+(e.tech?' ('+e.tech+')':'')+(e.type==='def'?' ←z'+e.zone+' '+e.kind:'')+' · '+e.rot}
+function tapOpp(z){if(S.mode!=='def')return;origin=z;render()}
+function tapOur(pos){const id=view()[pos-1];
+  if(sub){openPicker(pos);return}
+  if(!id)return;
+  if(S.mode==='def'&&!origin){const h=$('hint');h.classList.add('warn');return}
+  openGrade(id,pos)}
+function openGrade(pid,pos){ctx={pid};tech='';const t=S.mode;const p=P(pid);
+  const fr=t==='def'&&pos>=2&&pos<=4?`<button class="g" style="background:#0284c7;color:#fff" onclick="rec(5)"><em>▦</em>Punto a muro</button><button class="g" style="background:#7f1d1d;color:#fff" onclick="rec(6)"><em>↗</em>Mani out (punto avversario)</button>`:'';
+  $('panel').innerHTML=`<h2>${t==='rec'?'Ricezione':'Difesa da zona '+origin+' · '+kind} · ${lab(p)}</h2>
+   <div class="chips" id="tc">${TECH[t].map(x=>`<button class="chip" data-t="${x}" onclick="tech=tech==='${x}'?'':'${x}';markTech()">${x}</button>`).join('')}</div>
+   <div class="grades">${fr}${GR.slice(0,5).map((s,i)=>`<button class="g" style="background:${GC[i]};color:${GT[i]}" onclick="rec(${i})"><em>${s}</em>${GL[t][i]}</button>`).join('')}</div>
+   <button class="pl" onclick="closeSheet()">Annulla</button>`;
+  $('sheet').classList.add('on')}
+function markTech(){document.querySelectorAll('#tc .chip').forEach(c=>c.classList.toggle('on',c.dataset.t===tech))}
+function rec(g){push({type:S.mode,pid:ctx.pid,g,tech})}
+function ground(){push({type:'def',pid:0,g:4,tech:''})}
+function push(e){e.id=Date.now();e.set=S.set;e.rot=rotKey();e.zone=e.type==='def'?origin:0;e.kind=e.type==='def'?kind:'';
+  S.events.push(e);origin=null;tech='';closeSheet();save();render()}
+function undo(){if(!S.events.length)return;S.events.pop();save();render()}
+function closeSheet(){$('sheet').classList.remove('on');sub=false;if($('vMatch').classList.contains('on'))render()}
+function nextSet(){const q=score(S.set);ask('Chiudere il set '+S.set+' ('+q.us+' – '+q.opp+') e passare al set '+(S.set+1)+'?',()=>{S.set++;S.rot=0;S.lineup=[0,0,0,0,0,0];save();show('vSetup')},'Chiudi set')}
+
+/* ---------- statistiche ---------- */
+function showStats(){const o=['<option value="0">Tutti i set</option>'];for(let i=1;i<=S.set;i++)o.push(`<option value="${i}" ${i===S.set?'':''}>Set ${i}</option>`);
+  $('fset').innerHTML=o.join('');show('vStats');renderStats()}
+function agg(evs,key){const m={};evs.forEach(e=>{const k=key(e);(m[k]=m[k]||[0,0,0,0,0,0,0])[e.g]++});return m}
+function table(m,first,d){const H=d?['#','+','!','-','=','M','MO']:GR.slice(0,5);
+  const rows=Object.entries(m).sort((a,b)=>a[0].localeCompare(b[0],'it',{numeric:true})).map(([k,c])=>{const n=c.reduce((a,b)=>a+b,0);const pos=c[0]+c[1]+(d?c[5]:0);
+  return `<tr><td>${k}</td><td><b>${n}</b></td>${c.slice(0,H.length).map(x=>`<td>${x}</td>`).join('')}<td>${Math.round(pos/n*100)}%</td></tr>`}).join('');
+  return rows?`<table><tr><th>${first}</th><th>Tot</th>${H.map(g=>`<th>${g}</th>`).join('')}<th>Pos%</th></tr>${rows}</table>`+(d?'<p class="mut" style="margin-top:6px">M = punto a muro · MO = mani out (punto avversario) · Pos% include # + e muro</p>':''):'<p class="mut">Nessun dato.</p>'}
+function renderStats(){const f=+$('fset').value||0;const ev=S.events.filter(e=>!f||e.set===f);
+  const rec=ev.filter(e=>e.type==='rec'),def=ev.filter(e=>e.type==='def');
+  const nm=e=>P(e.pid)?lab(P(e.pid)):'Palla a terra';
+  $('sScore').innerHTML=Array.from({length:S.set},(_,i)=>{const q=score(i+1);return `<div class="row"><span>Set ${i+1}</span><b>${q.us} – ${q.opp}</b></div>`}).join('');
+  $('sRecP').innerHTML=table(agg(rec,nm),'Giocatrice');$('sRecR').innerHTML=table(agg(rec,e=>e.rot),'Rotaz.');
+  $('sDefP').innerHTML=table(agg(def,nm),'Giocatrice',1);$('sDefR').innerHTML=table(agg(def,e=>e.rot),'Rotaz.',1);
+  $('sZone').innerHTML=OPPORD.map(z=>{const d=def.filter(e=>e.zone===z),n=d.length,p=d.filter(e=>e.g<2||e.g===5).length;return `<div>zona ${z}<b>${n}</b>${n?Math.round(p/n*100)+'% pos':'—'}</div>`}).join('')}
+function csv(){const r=[['set','tipo','rotazione','numero','giocatrice','ruolo','voto','tecnica','zona_attacco','tipo_attacco']];
+  S.events.forEach(e=>{const p=P(e.pid)||{};r.push([e.set,e.type==='rec'?'ricezione':'difesa',e.rot,p.num||'',p.name||'palla a terra',p.role||'',GN[e.g],e.tech,e.zone||'',e.kind])});
+  const t=r.map(x=>x.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+t],{type:'text/csv'}));a.download='scout_volley.csv';document.body.appendChild(a);a.click();setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(a.href)},1500)}
+
+document.addEventListener('touchstart',function(){},{passive:true});
+show(S.roster.length&&S.lineup.some(Boolean)?'vMatch':'vSetup');
+$('nojs').style.display='none';
+</script></body></html>
